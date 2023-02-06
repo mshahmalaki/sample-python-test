@@ -1,0 +1,50 @@
+version: !!str 3
+
+services:
+  mongodb-primary:
+    image: docker.io/bitnami/mongodb:6.0
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-primary
+      - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_ROOT_PASSWORD=password123
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
+    ports:
+      - 54320:5432
+    volumes:
+      - mongodb_primary_data:/bitnami/mongodb
+
+  mongodb-secondary:
+    image: docker.io/bitnami/mongodb:6.0
+    depends_on:
+      - mongodb-primary
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-secondary
+      - MONGODB_REPLICA_SET_MODE=secondary
+      - MONGODB_INITIAL_PRIMARY_HOST=mongodb-primary
+      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=password123
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
+    ports:
+      - 54321:5432
+    volumes:
+      - mongodb_secondary_data:/bitnami/mongodb
+
+  mongodb-arbiter:
+    image: docker.io/bitnami/mongodb:6.0
+    depends_on:
+      - mongodb-primary
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-arbiter
+      - MONGODB_REPLICA_SET_MODE=arbiter
+      - MONGODB_INITIAL_PRIMARY_HOST=mongodb-primary
+      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=password123
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
+    volumes:
+      - mongodb_arbiter_data:/bitnami/mongodb
+
+volumes:
+  mongodb_primary_data:
+    driver: local
+  mongodb_secondary_data:
+    driver: local
+  mongodb_arbiter_data:
+    driver: local
